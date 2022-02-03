@@ -26,22 +26,22 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         //menu
-        $frontMenu = [
-            '/' => 'Home'
-        ];
-        $pages = Page::all();
-        foreach($pages as $page){
-            $frontMenu [ $page['slug'] ] = $page['title'];
-        }
-        View::share('front_menu', $frontMenu);
-
-        //Configurações
-
-        $config = [];
-        $settings = Setting::all();
-        foreach($settings as $setting){
-            $config[ $setting['name'] ] = $setting['content'];
-        }
-        View::share('front_config', $config);
+//        $frontMenu = [
+//            '/' => 'Home'
+//        ];
+//        $pages = Page::all();
+//        foreach($pages as $page){
+//            $frontMenu [ $page['slug'] ] = $page['title'];
+//        }
+//        View::share('front_menu', $frontMenu);
+//
+//        //Configurações
+//
+//        $config = [];
+//        $settings = Setting::all();
+//        foreach($settings as $setting){
+//            $config[ $setting['name'] ] = $setting['content'];
+//        }
+//        View::share('front_config', $config);
     }
 }

@@ -3,25 +3,23 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
+use App\Http\Requests\Page\RequestCreate;
+use App\Http\Requests\Page\RequestUpdate;
 use App\Page;
 
 class PageController extends Controller
 {
     public function __construct(){
         $this->middleware('auth');
-        
     }
 
     public function index()
     {
         $pages = Page::paginate(10);
-        
+
         return view('Admin.pages.index', [
             'pages' => $pages
-            ]);
+        ]);
     }
 
     /**
@@ -40,32 +38,11 @@ class PageController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(RequestCreate $request)
     {
-        $data = $request->only([
-            'title',
-            'body'
-        ]);
+         $data = $request->validated();
 
-        $data['slug'] = Str::slug($data['title'], '-');
-
-        $validator = Validator::make($data, [
-            'title' => ['required', 'string', 'max:100'],
-            'body' => ['string'],
-            'slug' => ['required', 'string', 'max:100', 'unique:pages']
-        ]);
-
-        if($validator->fails()){
-            return redirect()->route('pages.create')
-            ->withErrors($validator)
-            ->withInput();
-        }
-
-        $page = new Page;
-        $page->title = $data['title'];
-        $page->slug = $data['slug'];
-        $page->body = $data['body'];
-        $page->save();
+         Page::create($data);
 
         return redirect()->route('pages.index');
     }
@@ -87,14 +64,13 @@ class PageController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Page $page)
     {
-        $page = Page::find($id);
-        if($page){
+        try {
             return view('Admin.pages.edit', [
                 'page' => $page
             ]);
-        }else{
+        }catch (\Exception $exception) {
             return redirect()->route('pages.index');
         }
     }
@@ -106,46 +82,14 @@ class PageController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(RequestUpdate $request, Page $page)
     {
-        $page = Page::find($id);
-
-        if($page){
-            $data = $request->only([
-                'title',
-                'body'
-            ]);
-
-            if($page['title'] !== $data['title']){
-                $data['slug'] = Str::slug($data['title'], '-');
-                $validator = Validator::make($data,[
-                    'title' => ['required', 'string', 'max:100'],
-                    'body' => ['string'],
-                    'slug' => ['required', 'string', 'max:100', 'unique:pages']
-                ]);
-            }else{
-                $validator = Validator::make($data,[
-                    'title' => ['required', 'string', 'max:100'],
-                    'body' => ['string']
-                ]);
-            }
-            if($validator->fails()){
-                return redirect()->route('pages.edit',[
-                    'page' => $id
-                ])
-                ->withErrors($validator)
-                ->withInput();
-            }
-            $page->title = $data['title'];
-            $page->body = $data['body'];
-            if(!empty($data['slug'])){
-                $page->slug = $data['slug'];
-            }
-
-            $page->save();
+        try {
+            $data = $request->validated();
+            $page->update($data);
+        }catch(\Exception $exception) {
+            return redirect()->route('pages.index');
         }
-        
-        return redirect()->route('pages.index');
     }
 
     /**
@@ -154,12 +98,10 @@ class PageController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Page $page)
     {
-        
-        $page = Page::find($id);
         $page->delete();
-        
+
         return redirect()->route('pages.index');
     }
 }
